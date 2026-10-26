@@ -1,0 +1,28 @@
+.save-section-button {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0 12px;
+  border: 1px solid #173f34;
+  border-radius: 3px;
+  background: #173f34;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+.save-section-button:hover:not(:disabled) {
+  border-color: #285b47;
+  background: #285b47;
+}
+
+.save-section-button:disabled {
+  border-color: #dce3dc;
+  background: #f4f7f3;
+  color: #829087;
+  cursor: default;
+}
