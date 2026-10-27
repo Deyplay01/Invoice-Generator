@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-Edit the invoice sections and use **Save details**, **Save charges**, or **Save receipts** to apply each section to the PDF preview. Unsaved edits do not regenerate the preview. Use **Download saved PDF** to export the saved version. `npm run build` creates a production build, and `npm run lint` checks the source.
+Edit the invoice sections and use **Save details**, **Save charges**, or **Save receipts** to apply each section to the PDF preview. Unsaved edits do not regenerate the preview. On desktop, the saved PDF is embedded in the studio; on phones, use **Open PDF preview** to view it in the device's PDF viewer. **Download saved PDF** exports the saved version. `npm run build` creates a production build, and `npm run lint` checks the source.
 
 ## Invoice features
 
@@ -21,4 +21,4 @@ Edit the invoice sections and use **Save details**, **Save charges**, or **Save 
 - The closing includes the typed signatory name **Stella Abraham**, with optional editable signatory details in the invoice form. PDF styling uses the logo's red, black, and white palette.
 - Include attachments in the **Attached Receipts & Proofs** section, with each uploaded receipt image placed on its own PDF page.
 
-The PDF document and its styling are defined in `src/App.jsx`; the browser Buffer polyfill needed by PDF image rendering is configured in `src/main.jsx`. The invoice editor and responsive layout are styled in `src/App.css`, `src/Workflow.css`, and `src/index.css`.
+The PDF document and its styling are defined in `src/App.jsx`; the browser Buffer polyfill needed by PDF image rendering is configured in `src/main.jsx`. The invoice editor and responsive layout are styled in `src/App.css`, `src/Workflow.css`, `src/MobilePreview.css`, `src/GuestCharges.css`, and `src/index.css`.

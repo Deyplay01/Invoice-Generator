@@ -1,0 +1,260 @@
+.line-items-header,
+.line-item {
+  grid-template-columns:
+    minmax(0, 1.3fr)
+    minmax(74px, .65fr)
+    minmax(108px, .9fr)
+    minmax(108px, .9fr)
+    minmax(112px, .85fr)
+    32px;
+}
+
+.line-items-header {
+  gap: 8px;
+  padding-inline: 12px;
+  font-size: 7px;
+  letter-spacing: .045em;
+}
+
+.line-item {
+  gap: 8px;
+  min-height: 60px;
+  padding: 9px 12px;
+}
+
+.guest-cell {
+  gap: 8px;
+  min-width: 0;
+}
+
+.guest-name-field,
+.room-cell,
+.charge-date-field {
+  display: contents;
+}
+
+.guest-name-field > span,
+.room-cell > span {
+  display: none;
+}
+
+.guest-name-field input,
+.room-cell input,
+.charge-date-field .table-input {
+  height: 36px;
+  min-width: 0;
+  padding: 0 7px;
+  border: 1px solid #e1e7e1;
+  border-radius: 3px;
+  background: #fff;
+  color: #33453b;
+  font-size: 10px;
+}
+
+.guest-name-field input {
+  font-weight: 600;
+}
+
+.charge-date-field .table-input {
+  padding: 0 4px;
+  font-size: 9px;
+}
+
+.amount-input-wrap {
+  min-width: 0;
+}
+
+.amount-input {
+  height: 34px;
+  padding: 0 5px;
+  font-size: 10px;
+}
+
+.remove-button {
+  width: 30px;
+  height: 30px;
+}
+
+.charge-input-field > span,
+.charge-date-field > span,
+.amount-field-label {
+  display: none;
+}
+
+@media (max-width: 680px) {
+  .table-panel {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .line-item {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 40px;
+    grid-template-areas:
+      "guest guest remove"
+      "room room remove"
+      "arrival departure remove"
+      "amount amount remove";
+    gap: 12px 9px;
+    min-width: 0;
+    margin-bottom: 10px;
+    padding: 14px 12px;
+    border: 1px solid #dce3dc;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 2px 8px #243c2b08;
+  }
+
+  .guest-cell {
+    grid-area: guest;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .guest-name-field,
+  .room-cell {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .room-cell {
+    grid-area: room;
+    margin-left: 35px;
+  }
+
+  .row-index {
+    display: grid;
+    width: 25px;
+    height: 25px;
+    flex-shrink: 0;
+    place-items: center;
+    padding: 0;
+    border-radius: 50%;
+    background: #edf4ee;
+    color: #365b40;
+  }
+
+  .charge-input-field {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .charge-input-field > span,
+  .charge-date-field > span,
+  .amount-field-label {
+    display: block;
+    color: #65756b;
+    font-size: 9px;
+    font-weight: 650;
+  }
+
+  .guest-name-field input,
+  .room-cell input,
+  .table-input {
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+    padding: 0 8px;
+    border: 1px solid #dfe5df;
+    border-radius: 3px;
+    background: #fff;
+    color: #283a30;
+    font-size: 12px;
+  }
+
+  .guest-name-field input {
+    font-weight: 500;
+  }
+
+  .arrival-field {
+    grid-area: arrival;
+  }
+
+  .departure-field {
+    grid-area: departure;
+  }
+
+  .charge-date-field {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .charge-date-field .date-input {
+    padding: 0 5px;
+    font-size: 10px;
+  }
+
+  .amount-input-wrap {
+    grid-area: amount;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 5px 8px;
+    min-width: 0;
+    padding: 0 0 3px;
+    border-bottom: 0;
+  }
+
+  .amount-field-label {
+    grid-column: 1 / -1;
+  }
+
+  .amount-prefix {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .amount-input {
+    grid-column: 2;
+    grid-row: 2;
+    height: 40px;
+    border: 1px solid #dfe5df;
+    text-align: left;
+  }
+
+  .amount-input:focus {
+    border-color: #54846a;
+    box-shadow: 0 0 0 2px #54846a18;
+  }
+
+  .remove-button {
+    grid-area: remove;
+    align-self: center;
+    justify-self: center;
+    width: 38px;
+    height: 38px;
+  }
+
+  .table-footer {
+    gap: 8px;
+    min-height: 44px;
+    padding: 8px 2px 0;
+    border-top: 0;
+  }
+
+  .table-footer > span {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 360px) {
+  .line-item {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 34px;
+    gap: 10px 6px;
+    padding: 12px 9px;
+  }
+
+  .guest-name-field input,
+  .room-cell input {
+    padding: 0 6px;
+    font-size: 11px;
+  }
+}

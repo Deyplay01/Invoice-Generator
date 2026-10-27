@@ -1,9 +1,11 @@
 import { memo, useEffect, useMemo, useState } from 'react'
-import { Document, Image, Page, PDFDownloadLink, PDFViewer, StyleSheet, Text, View } from '@react-pdf/renderer'
-import { CalendarDays, ChevronDown, Download, FileImage, FilePlus2, Hotel, Plus, Trash2 } from 'lucide-react'
+import { Document, Image, Page, pdf as renderPdf, StyleSheet, Text, View } from '@react-pdf/renderer'
+import { CalendarDays, ChevronDown, Download, ExternalLink, FileImage, FilePlus2, Hotel, Plus, Trash2 } from 'lucide-react'
 import citilodgeLogo from './assets/OIP.webp'
 import './App.css'
 import './Workflow.css'
+import './MobilePreview.css'
+import './GuestCharges.css'
 
 const sampleDate = '2025-07-16'
 const initialItems = [
@@ -258,11 +260,23 @@ function FormField({ label, value, onChange, type = 'text', placeholder, multili
   )
 }
 
-const InvoicePreview = memo(function InvoicePreview({ document }) {
+const InvoicePreview = memo(function InvoicePreview({ pdfUrl, pdfError, fileName }) {
   return (
-    <div className="pdf-frame">
-      <PDFViewer showToolbar={false} className="pdf-viewer">{document}</PDFViewer>
-    </div>
+    <>
+      <div className="mobile-preview-actions">
+        {pdfUrl
+          ? <a className="mobile-preview-button" href={pdfUrl} target="_blank" rel="noreferrer"><ExternalLink size={16} /> Open PDF preview</a>
+          : <button className="mobile-preview-button" type="button" disabled>{pdfError ? 'Preview unavailable' : 'Preparing preview…'}</button>}
+        {pdfUrl && <a className="mobile-download-link" href={pdfUrl} download={fileName}><Download size={14} /> Download PDF</a>}
+        <p>Opens the saved invoice in your phone’s PDF viewer.</p>
+        {pdfError && <p className="mobile-preview-error" role="alert">{pdfError}</p>}
+      </div>
+      <div className="pdf-frame">
+        {pdfUrl
+          ? <iframe src={pdfUrl} title="Saved Citilodge invoice PDF preview" className="pdf-viewer" />
+          : <p className="preview-placeholder" role={pdfError ? 'alert' : 'status'}>{pdfError || 'Preparing saved PDF preview…'}</p>}
+      </div>
+    </>
   )
 })
 
@@ -300,6 +314,8 @@ function App() {
   }, [items])
   const [pdfData, setPdfData] = useState(() => ({ invoice, items, totals, receipts, logoData }))
   const hasUnsavedChanges = invoiceDirty || itemsDirty || receiptsDirty
+  const [generatedPdf, setGeneratedPdf] = useState(null)
+  const [pdfError, setPdfError] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -324,6 +340,32 @@ function App() {
     void loadLogo()
     return () => { cancelled = true }
   }, [])
+
+  const pdf = useMemo(() => <InvoiceDocument {...pdfData} />, [pdfData])
+
+  useEffect(() => {
+    let cancelled = false
+    let objectUrl
+
+    renderPdf(pdf).toBlob().then((blob) => {
+      if (cancelled) return
+      objectUrl = URL.createObjectURL(blob)
+      setGeneratedPdf({ document: pdf, url: objectUrl })
+      setPdfError(null)
+    }).catch((error) => {
+      if (!cancelled) {
+        setPdfError({
+          document: pdf,
+          message: error instanceof Error ? error.message : 'The invoice PDF could not be generated.',
+        })
+      }
+    })
+
+    return () => {
+      cancelled = true
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [pdf])
 
   const setInvoiceField = (field, value) => {
     setInvoice((current) => ({ ...current, [field]: value }))
@@ -382,7 +424,9 @@ function App() {
     setReceiptError(errors.join(' '))
   }
 
-  const pdf = useMemo(() => <InvoiceDocument {...pdfData} />, [pdfData])
+  const currentPdfUrl = generatedPdf?.document === pdf ? generatedPdf.url : ''
+  const currentPdfError = pdfError?.document === pdf ? pdfError.message : ''
+  const pdfFileName = `invoice-${pdfData.invoice.number || 'draft'}.pdf`
 
   return (
     <div className="min-h-screen bg-[#edf1ed] text-[#1f3029]">
@@ -398,17 +442,14 @@ function App() {
             <h1 className="page-title">Hotel invoice studio</h1>
             <p className="page-subtitle">Prepare a guest bill, attach proof, and export a ready-to-send PDF.</p>
           </div>
-          <PDFDownloadLink
-            document={pdf}
-            fileName={`invoice-${pdfData.invoice.number || 'draft'}.pdf`}
-            className={`download-button${logoData ? '' : ' pointer-events-none opacity-60'}`}
-            aria-disabled={!logoData}
-            onClick={(event) => {
-              if (!logoData) event.preventDefault()
-            }}
+          <a
+            href={currentPdfUrl || undefined}
+            download={pdfFileName}
+            className={`download-button${currentPdfUrl ? '' : ' pointer-events-none opacity-60'}`}
+            aria-disabled={!currentPdfUrl}
           >
-            {({ loading }) => <><Download size={16} />{loading ? 'Preparing PDF…' : !logoData ? 'Loading logo…' : 'Download saved PDF'}</>}
-          </PDFDownloadLink>
+            <Download size={16} />{currentPdfUrl ? 'Download saved PDF' : currentPdfError ? 'PDF unavailable' : 'Preparing PDF…'}
+          </a>
         </section>
 
         <div className="studio-grid">
@@ -434,13 +475,17 @@ function App() {
 
             <div className="section-topline table-heading"><span className="step-number">02</span><div><h2 className="section-heading">Guest charges</h2><p className="section-caption">Enter each room or service charge</p></div><button type="button" className="quiet-button add-row-button" onClick={addItem}><Plus size={15} /> Add line</button><button type="button" className="save-section-button" onClick={saveItems} disabled={!itemsDirty}>Save charges</button></div>
             <div className="table-panel">
-              <div className="line-items-header"><span>GUEST / ROOM</span><span>ARRIVAL</span><span>DEPARTURE</span><span>AMOUNT · NGN</span><span /></div>
+              <div className="line-items-header"><span>GUEST NAME</span><span>ROOM NO.</span><span>ARRIVAL DATE</span><span>DEPARTURE DATE</span><span>AMOUNT · NGN</span><span /></div>
               {items.map((item, index) => (
                 <div className="line-item" key={item.id}>
-                  <div className="guest-cell"><span className="row-index">{String(index + 1).padStart(2, '0')}</span><div className="guest-fields"><input aria-label={`Guest name ${index + 1}`} value={item.name} onChange={(event) => updateItem(item.id, 'name', event.target.value)} placeholder="Guest name" /><input aria-label={`Room number ${index + 1}`} value={item.room} onChange={(event) => updateItem(item.id, 'room', event.target.value)} placeholder="Room no." /></div></div>
-                  <input aria-label={`Arrival date ${index + 1}`} className="table-input date-input" type="date" value={item.arrival} onChange={(event) => updateItem(item.id, 'arrival', event.target.value)} />
-                  <input aria-label={`Departure date ${index + 1}`} className="table-input date-input" type="date" value={item.departure} onChange={(event) => updateItem(item.id, 'departure', event.target.value)} />
-                  <label className="amount-input-wrap"><span>N</span><input aria-label={`Amount ${index + 1}`} className="table-input amount-input" type="number" min="0" step="0.01" value={item.amount} onChange={(event) => updateItem(item.id, 'amount', event.target.value)} placeholder="0.00" /></label>
+                  <div className="guest-cell">
+                    <span className="row-index">{String(index + 1).padStart(2, '0')}</span>
+                    <label className="charge-input-field guest-name-field"><span>Guest name</span><input aria-label={`Guest name ${index + 1}`} value={item.name} onChange={(event) => updateItem(item.id, 'name', event.target.value)} placeholder="Guest name" /></label>
+                  </div>
+                  <label className="charge-input-field room-cell"><span>Room number</span><input aria-label={`Room number ${index + 1}`} value={item.room} onChange={(event) => updateItem(item.id, 'room', event.target.value)} placeholder="Room no." /></label>
+                  <label className="charge-date-field arrival-field"><span>Arrival date</span><input aria-label={`Arrival date ${index + 1}`} className="table-input date-input" type="date" value={item.arrival} onChange={(event) => updateItem(item.id, 'arrival', event.target.value)} /></label>
+                  <label className="charge-date-field departure-field"><span>Departure date</span><input aria-label={`Departure date ${index + 1}`} className="table-input date-input" type="date" value={item.departure} onChange={(event) => updateItem(item.id, 'departure', event.target.value)} /></label>
+                  <label className="amount-input-wrap"><span className="amount-prefix">N</span><span className="amount-field-label">Amount (NGN)</span><input aria-label={`Amount ${index + 1}`} className="table-input amount-input" type="number" min="0" step="0.01" value={item.amount} onChange={(event) => updateItem(item.id, 'amount', event.target.value)} placeholder="0.00" /></label>
                   <button type="button" className="icon-button remove-button" aria-label={`Remove line ${index + 1}`} title="Remove line" onClick={() => removeItem(item.id)} disabled={items.length === 1}><Trash2 size={15} /></button>
                 </div>
               ))}
@@ -464,7 +509,7 @@ function App() {
 
           <aside className="preview-column" aria-label="Invoice preview and totals">
             <div className="preview-toolbar"><div className="preview-label"><span className="live-dot" /> {hasUnsavedChanges ? 'SAVED PREVIEW · DRAFTS PENDING' : 'SAVED PDF PREVIEW'}</div><span className="paper-size">A4 <span>·</span> PDF</span></div>
-            <InvoicePreview document={pdf} />
+            <InvoicePreview pdfUrl={currentPdfUrl} pdfError={currentPdfError} fileName={pdfFileName} />
             <div className="summary-panel">
               <div className="summary-heading"><div><span className="eyebrow">BILLING SUMMARY</span><h2>Amount due</h2></div><CalendarDays size={18} /></div>
               <div className="summary-row"><span>Subtotal</span><strong>{formatNaira(pdfData.totals.subtotal)}</strong></div>
